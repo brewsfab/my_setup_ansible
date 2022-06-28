@@ -1,0 +1,48 @@
+---
+- name: Apply the dotfiles
+  become: no
+  environment:
+    DOTFILES_REPO: "{{ dotfiles_repo }}"
+  block:
+    - name: Delete the ./dotfiles
+      file:
+        path: $HOME/.dotfiles
+        state: absent
+    - name: Clone the .dotfiles
+      shell:
+        cmd: |
+          git clone --bare $DOTFILES_REPO $HOME/.dotfiles
+          /usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME checkout
+  rescue:
+    - name: Move the preexisting and checkout
+      args:
+        executable: /bin/bash
+      shell:
+        cmd: |
+          function config {
+             /usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME $@
+          }
+          if [ ! -d $HOME/.config-backup ]; then
+            mkdir $HOME/.config-backup
+          fi
+          function manage_preexisting {
+              preexisting=$(config checkout 2>&1 | egrep "^\s+" | awk {'print $1'})
+              echo herez $preexisting
+
+              base=$HOME/.config-backup
+
+              if [ -n "$preexisting" ]; then
+                for el in $preexisting; do
+                    mvdir=''
+                    if [ $(dirname $el) != '.' ]; then
+                        mvdir=$(dirname $el)
+                        mkdir -p $base/$mvdir
+                    fi
+                        mv -v $HOME/$el $base/$mvdir
+                done
+              fi
+          }
+
+          manage_preexisting
+          config checkout
+          config config status.showUntrackedFiles no

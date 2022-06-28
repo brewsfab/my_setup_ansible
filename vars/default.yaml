@@ -1,0 +1,72 @@
+dotfiles_repo: https://github.com/brewsfab/dotfiles.git
+
+install_utilities: yes
+install_entertainment: yes
+install_dev: yes
+install_infra: yes
+install_work_specific: yes
+install_browser: yes
+install_chat: yes
+install_others: yes
+
+
+sections: ["utilities","entertainment","dev","infra","work_specific","browser","chat","others"]
+
+apt_packages:
+  utilities:
+    - i3
+    - flameshot
+    - gpick
+    - htop
+    - tree
+    - xclip
+    - ripgrep
+    - ffmpeg
+    - fonts-powerline
+    - fonts-noto-color-emoji
+    - kitty
+    - compton
+    - feh
+    - jq
+    - arandr
+
+  dev:
+    - vim
+    - python3-pip
+    - python3-neovim
+    - pulseaudio
+    - pavucontrol
+    - curl
+    - git
+
+  infra:
+    - ansible
+
+
+  browser:
+    - firefox
+
+
+  others:
+    - inkscape
+    - pdfarranger
+
+snap_packages:
+  entertainment:
+    - vlc
+    - cumulonimbus
+
+debs:
+  - pkg_name: insomnia
+    url: https://updates.insomnia.rest/downloads/ubuntu/latest
+  - pkg_name: zoom
+    url: https://zoom.us/client/latest/zoom_amd64.deb
+  - pkg_name: neovim
+    url: https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.deb
+
+extra_apt_packages:
+    - cortex-agent
+    - vscode
+    - slack-desktop
+    - google-chrome-stable
+    - forticlient

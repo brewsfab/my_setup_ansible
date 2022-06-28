@@ -1,0 +1,12 @@
+---
+- name: Get the list of already installed
+  shell: apt list --installed
+  register: already_installed
+
+- name: DEBS Install
+  apt:
+    deb: "{{ item['url'] }}"
+    state: present
+  #only when the package is not yet installed
+  when: "not already_installed.stdout | string | regex_search('^'+item['pkg_name'], multiline=True, ignorecase=True)"
+  with_items: "{{ debs }}"

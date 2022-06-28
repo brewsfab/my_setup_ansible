@@ -1,0 +1,39 @@
+---
+- hosts: all
+  become: true
+  user: "{{ user }}"
+  vars:
+    dotfiles_repo: "{{ dotfiles_repo }}"
+  vars_files:
+    - vars/default.yaml
+
+
+  pre_tasks:
+    - name: Update the cache
+      apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  tasks:
+    - import_tasks: tasks/packages/apt.yaml
+      tags:
+        - apt_only
+    - import_tasks: tasks/packages/snap.yaml
+      tags:
+        - snap_only
+    - import_tasks: tasks/packages/docker.yaml
+      tags:
+        - docker_only
+    - import_tasks: tasks/packages/sublime.yaml
+      tags:
+        - sublime_only
+    - import_tasks: tasks/packages/debs.yaml
+      tags:
+        - debs_only
+    - import_tasks: tasks/packages/zsh.yaml
+    - import_tasks: tasks/packages/postprocess.yaml
+    - import_tasks: tasks/dotfiles/main.yaml
+      tags:
+        - dotfiles
+
+

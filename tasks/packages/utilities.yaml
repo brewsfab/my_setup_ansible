@@ -1,0 +1,16 @@
+---
+- name: APT Install
+  apt:
+    pkg: "{{ apt_packages[item]|default([])}}"
+    state: present
+  when: "vars['install_' + item]"
+  check_mode: yes
+  with_items: "{{sections}}"
+
+- name: SNAP Install
+  snap:
+    name: "{{ snap_packages[item]|default([]) }}"
+    state: present
+  when: "vars['install_' + item]"
+  check_mode: yes
+  with_items: "{{sections}}"

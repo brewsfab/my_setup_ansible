@@ -1,0 +1,36 @@
+---
+- name: Install zsh
+  apt:
+    name: zsh
+    state: latest
+
+- name: Install oh-my-zsh
+  become: no
+  shell:
+    cmd: curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh | sh
+    creates: ~/.oh-my-zsh
+
+- name: Set default shell
+  user:
+    name: "{{ user }}"
+    shell: /usr/bin/zsh
+
+- name: Install Font powerlines prerequisities
+  apt:
+    name: fonts-powerline
+    state: present
+
+- name: Clone the spaceship theme
+  become: no
+  git:
+    repo: https://github.com/spaceship-prompt/spaceship-prompt.git
+    dest: "$HOME/.oh-my-zsh/custom/themes/spaceship-prompt"
+      #dest: "/home/{{user}}/.oh-my-zsh/custom/themes/spaceship-prompt"
+    depth: 1
+
+- name: Set the symlink
+  become: no
+  file:
+    src: "$HOME/.oh-my-zsh/custom/themes/spaceship-prompt/spaceship.zsh-theme"
+    dest: "$HOME/.oh-my-zsh/custom/themes/spaceship.zsh-theme"
+    state: link

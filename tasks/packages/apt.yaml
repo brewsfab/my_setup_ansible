@@ -1,0 +1,7 @@
+---
+- name: APT Install
+  apt:
+    pkg: "{{ apt_packages[item]|default([])}}"
+    state: present
+  when: "vars['install_' + item]"
+  with_items: "{{sections}}"

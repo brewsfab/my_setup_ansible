@@ -1,0 +1,83 @@
+---
+- name: Uninstall the old versions if needed
+  apt:
+    pkg:
+      - docker
+      - docker-engine
+      - docker-io
+      - containerd
+      - runc
+    state: absent
+
+- name: Install required packages
+  apt:
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+      - uidmap
+        #- software-properties-common
+        #- python3-pip
+        #- virtualenv
+        #- python3-setuptools
+    state: latest
+    update_cache: true
+
+- name: Add Docker GPG apt Key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker Repository
+  apt_repository:
+    repo: deb https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+    state: present
+
+- name: Update apt and install docker-ce and others
+  apt:
+    pkg:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-ce-rootless-extras
+    state: latest
+    update_cache: true
+
+- name: Verify the installation of docker is successful
+  command: docker run hello-world
+  register: docker_status
+
+- name: Install the docker rootless if needed
+  block:
+    - name: Verify that docker is rootless
+      shell: /bin/bash -ic "docker run hello-world"
+      become: no
+      register: docker_status_rootless
+      tags:
+        - docker_rootless
+  rescue:
+    - name: Install the dockerd-rootless-setuptools
+      command: /usr/bin/dockerd-rootless-setuptool.sh install
+      register: dockerd_installation
+      become: no
+      tags:
+        - docker_rootless
+
+    - name: Add the env variable for rootless docker
+      blockinfile:
+        dest: "~/.bashrc"
+        block: |-
+          export DOCKER_HOST=unix:///run/user/1000/docker.sock
+      become: no
+      tags:
+        - docker_rootless
+
+    - name: Verify that docker is now rootless
+      shell: /bin/bash -ic 'docker run hello-world'
+      become: no
+      register: now_rootless
+      failed_when: "'Hello from Docker!' not in now_rootless.stdout"
+      tags:
+        - docker_rootless

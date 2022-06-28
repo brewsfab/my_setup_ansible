@@ -1,0 +1,91 @@
+---
+#### HOMEBREW ####
+- name: Install homebrew
+  #user: "{{ user }}"
+  become: no
+  script: install-homebrew.sh
+  tags:
+    - homebrew
+
+#### HOMEBREW PACKAGES ####
+- name: Install homebrew packages
+  become: no
+  homebrew:
+    path: /home/linuxbrew/.linuxbrew/bin
+    name:
+      - diff-so-fancy
+      - bat
+      - entr
+      - fzf
+    state: present
+  tags:
+    - homebrew
+
+### NODEJS 16.x ####
+- name: From source
+  shell:
+    cmd: curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+
+- name: From source
+  apt:
+    name: nodejs
+    state: latest
+
+### KITTY ####
+- name: Verify that kitty is already installed
+  become: no
+  stat:
+    path: ~/.local/kitty.app/bin/kitty
+  register: kitty_install_status
+  tags:
+    - kitty
+
+- name: Install latest kitty
+  become: no
+  shell:
+    cmd: curl -L https://sw.kovidgoyal.net/kitty/installer.sh | sh /dev/stdin
+  when:
+    - not kitty_install_status.stat.exists
+  tags:
+    - kitty
+
+- name: Set the symlink to /usr/bin
+  file:
+    src: /home/{{user}}/.local/kitty.app/bin/kitty
+    dest: /usr/bin/kitty
+    state: link
+  when:
+    - not kitty_install_status.stat.exists
+  tags:
+    - kitty
+
+- name: Set kitty as default
+  alternatives:
+    name: x-terminal-emulator
+    path: /usr/bin/kitty
+  tags:
+    - kitty
+
+### FONT-AWESOME 4.7.0 FOR GETTING ALL LEGACY FONTS ####
+- name: Ensure that ~/.fonts exists
+  become: no
+  file:
+    path: ~/.fonts
+    state: directory
+
+- name: Extract font-awesome
+  become: no
+  unarchive:
+    src: https://github.com/FortAwesome/Font-Awesome/archive/refs/tags/v4.7.0.zip
+    dest: ~/.fonts/
+    remote_src: yes
+    creates: ~/.fonts/Font-Awesome-4.7.0/
+
+### BUMBLEBEE-STATUS ####
+- name: Install bumblebee-status from pip
+  become: no
+  pip:
+    name: bumblebee-status
+    extra_args: --user
+  tags:
+    - bumble
